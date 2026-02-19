@@ -780,8 +780,8 @@ class Zotify:
             except FeederException as e:
                 Printer.hashtaged(PrintChannel.WARNING, 'FAILED TO FETCH AUDIO FILE\n' +
                                                         'FALLBACK AUTO AUDIO QUALITY NOT AVAILABLE')
-        except ConnectionError as e:
-            if "Status code " in e.args[0]:
+        except (ConnectionError, requests.exceptions.ConnectionError) as e:
+            if e.args and "Status code " in str(e.args[0]):
                 status_code = e.args[0].split("Status code ")[1]
                 Printer.hashtaged(PrintChannel.ERROR, 'FAILED TO FETCH AUDIO FILE\n' +
                                                       f'CONNECTION ERROR WHEN FETCHING CONTENT STREAM - STATUS CODE {status_code}')
