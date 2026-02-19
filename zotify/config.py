@@ -812,7 +812,14 @@ class Zotify:
         
         tryCount = 0
         while tryCount <= cls.CONFIG.get_retry_attempts():
-            response = requests.get(url, headers=headers, params=params)
+            try:
+                response = requests.get(url, headers=headers, params=params)
+            except requests.exceptions.ConnectionError as e:
+                Printer.hashtaged(PrintChannel.WARNING,
+                    f'CONNECTION ERROR (TRY {tryCount}) - RETRYING\n{e}')
+                tryCount += 1
+                sleep(5 if not expectFail else 1)
+                continue
             cls.TOTAL_API_CALLS += 1
             
             try:
@@ -881,6 +888,9 @@ class Zotify:
             
             _, resp = Zotify.invoke_url(url + items_batch)
             items.extend(resp[stripper]) # stripper must be present, handled by the caller
+
+            if len(bulk_items):
+                sleep(cls.CONFIG.get_bulk_wait_time())
         return items
     
     @classmethod
